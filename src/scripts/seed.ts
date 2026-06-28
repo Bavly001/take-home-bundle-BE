@@ -1,24 +1,13 @@
 import 'dotenv/config'
-import { readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
-import { dirname, resolve } from 'node:path'
 import mysql, { type RowDataPacket } from 'mysql2/promise'
 
 const main = async () => {
   const DATABASE_URL = process.env.DATABASE_URL
   if (!DATABASE_URL) throw new Error('DATABASE_URL is not set.')
 
-  const here = dirname(fileURLToPath(import.meta.url))
-  const sqlPath = resolve(here, '../../sql/wyze.sql')
-  const sql = readFileSync(sqlPath, 'utf8')
-
   const connection = await mysql.createConnection({
     uri: DATABASE_URL,
-    multipleStatements: true,
   })
-
-  console.log('Seeding database from', sqlPath)
-  await connection.query(sql)
 
   const [products] = await connection.query<RowDataPacket[]>(
     'SELECT category, COUNT(*) AS count FROM products GROUP BY category ORDER BY category',
